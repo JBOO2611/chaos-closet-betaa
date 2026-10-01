@@ -22,3 +22,4 @@ For local migration:
 5. Run the app.
 
 The first account remains the owner/admin.
+https://github.com/JBOO2611/chaos-closet-betaa

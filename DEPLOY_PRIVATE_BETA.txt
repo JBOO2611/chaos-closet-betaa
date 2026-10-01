@@ -1,0 +1,48 @@
+CHAOS CLOSET CROSSLISTER v8 — PRIVATE BETA DEPLOYMENT
+
+WHAT v8 ADDS
+- Invite-code-only registration
+- Cloud-safe production startup with Gunicorn
+- HTTPS/proxy-aware session handling
+- Persistent DATA_DIR support
+- Health check endpoint
+- Admin stats endpoint
+- Local mode still works exactly like before
+
+IMPORTANT
+For a real public/private beta, use a persistent volume for DATA_DIR.
+Do NOT deploy with DATA_DIR on ephemeral storage or your database/photos may disappear on redeploy.
+
+RAILWAY-STYLE DEPLOYMENT
+1. Create a new project from this folder/repository.
+2. Add a persistent volume and mount it at /data.
+3. Add environment variables:
+   SECRET_KEY = a long random value
+   BETA_INVITE_CODE = a private code only your testers know
+   DATA_DIR = /data
+   FLASK_ENV = production
+4. Deploy.
+5. Give testers the generated HTTPS URL + invite code.
+6. Create YOUR owner/admin account first.
+
+OWNER ACCOUNT
+The first account created becomes admin/owner.
+Create yours before sharing the beta link.
+
+LOCAL MODE
+You can still double-click RUN_CHAOS_CLOSET.bat.
+Local data will now live in the app's data folder unless DATA_DIR is set.
+
+SECURITY NOTES
+- Never share SECRET_KEY.
+- Beta invite code can be rotated by changing BETA_INVITE_CODE and redeploying.
+- Marketplace API secrets will later be stored as environment variables / encrypted user tokens.
+- Do not expose a Windows local server directly to the internet.
+
+NEXT CLOUD HARDENING BEFORE A LARGE LAUNCH
+- Managed PostgreSQL
+- Object storage for photos
+- Email verification/password reset
+- Rate limiting
+- Terms/privacy pages
+- Per-user marketplace OAuth token encryption

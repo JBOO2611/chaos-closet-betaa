@@ -1,0 +1,230 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chaos Closet Crosslister v8</title>
+<style>
+:root{--bg:#0b0b10;--card:#181820;--card2:#22222c;--pink:#ff2e91;--soft:#ffa2d0;--muted:#a8a1ac;--border:#333340;--ok:#4bd59b;--warn:#ffc65a;--red:#ff647c}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 10% 0,rgba(255,46,145,.18),transparent 28%),#0c0c11;color:#f8f5f9;font:14px Segoe UI,Arial,sans-serif}
+header{position:sticky;top:0;z-index:8;background:rgba(12,12,17,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.brand{font-weight:900;font-size:19px}.brand span{color:var(--soft);font-size:11px}.sub{color:var(--muted);font-size:12px;margin-top:3px}
+nav{display:flex;gap:6px;flex-wrap:wrap}nav button.active{background:linear-gradient(135deg,var(--pink),#9139ff)}
+main{max-width:1450px;margin:auto;padding:20px}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}.stat{background:var(--card);border:1px solid var(--border);padding:14px;border-radius:16px}.stat b{font-size:24px;display:block;margin-top:5px}.stat small{color:var(--muted)}
+button,.btn{border:0;border-radius:11px;padding:10px 13px;color:#fff;background:var(--card2);font-weight:800;cursor:pointer}.primary{background:linear-gradient(135deg,var(--pink),#933aff)}.good{background:#197654}.bad{background:#872c45}.warn{background:#725618}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;background:var(--card);border:1px solid var(--border);padding:11px;border-radius:16px;margin-bottom:16px}
+input,select,textarea{width:100%;background:#101016;color:white;border:1px solid var(--border);border-radius:10px;padding:10px;outline:none}.toolbar input{flex:1;min-width:220px}.toolbar select{width:150px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:13px}.card{background:var(--card);border:1px solid var(--border);border-radius:17px;overflow:hidden}.photo{height:190px;background:#111118;display:grid;place-items:center;color:var(--muted)}.photo img{width:100%;height:100%;object-fit:cover}.body{padding:13px;display:grid;gap:8px}.row{display:flex;justify-content:space-between;gap:8px}.title{font-weight:900}.price{font-weight:900;color:var(--soft)}.meta{color:var(--muted);font-size:12px}.profit{color:var(--ok);font-weight:900}.pills{display:flex;flex-wrap:wrap;gap:5px}.pill{border:1px solid #77405d;background:#341826;color:#ffd0e5;padding:4px 7px;border-radius:99px;font-size:11px}.actions{display:flex;gap:6px;flex-wrap:wrap}.actions button{font-size:12px;padding:8px 9px}
+dialog{width:min(970px,95vw);max-height:91vh;overflow:auto;background:#15151d;color:white;border:1px solid var(--border);border-radius:20px;padding:0}.mh,.mf{padding:14px 17px;background:#15151d;position:sticky;z-index:4}.mh{top:0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}.mf{bottom:0;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}.mb{padding:17px}.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}label{display:block;font-size:12px;font-weight:800;margin-bottom:5px;color:#ddd}.plat{display:grid;grid-template-columns:1fr 140px;gap:8px;background:#101016;border:1px solid var(--border);padding:9px;border-radius:11px}.plat label{margin:0;display:flex;align-items:center;gap:8px}.plat input[type=checkbox]{width:auto;accent-color:var(--pink)}textarea{min-height:110px}.empty{text-align:center;border:1px dashed var(--border);border-radius:16px;padding:55px;color:var(--muted);grid-column:1/-1}.note{font-size:11px;color:var(--muted)}.hidden{display:none!important}
+.tablewrap{overflow:auto;border:1px solid var(--border);border-radius:16px}.sales{width:100%;border-collapse:collapse;background:var(--card)}.sales th,.sales td{padding:11px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}.sales th{color:var(--muted);font-size:11px}.conn{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.conncard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px}.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;background:#777}.dot.pending{background:var(--warn)}.dot.connected{background:var(--ok)}
+@media(max-width:750px){.stats{grid-template-columns:1fr 1fr}.fg{grid-template-columns:1fr}.full{grid-column:auto}.plat{grid-template-columns:1fr}header{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+<div><div class="brand">Chaos Closet Crosslister <span>v8 PRIVATE BETA</span></div><div class="sub">Invite-only reseller beta • inventory • profit • publish queue</div><div id="userLine" class="sub" style="color:var(--soft)"></div></div>
+<nav>
+<button id="tabInv" class="active" onclick="showTab('inventory')">Inventory</button>
+<button id="tabSales" onclick="showTab('sales')">Sales</button>
+<button id="tabQueue" onclick="showTab('queue')">Publish Queue</button>
+<button id="tabSettings" onclick="showTab('settings')">Connections</button>
+<button onclick="window.location='/api/export/csv'">CSV Export</button>
+<button onclick="window.location='/api/backup'">Backup App</button>
+<button class="primary" onclick="openForm()">＋ New listing</button>
+<button class="bad" onclick="logout()">Log out</button>
+</nav>
+</header>
+<main>
+
+<section id="inventoryTab">
+<div class="stats">
+<div class="stat"><small>ACTIVE</small><b id="sa">0</b></div>
+<div class="stat"><small>SOLD</small><b id="ss">0</b></div>
+<div class="stat"><small>LISTED VALUE</small><b id="sv">$0</b></div>
+<div class="stat"><small>INVENTORY COST</small><b id="sc">$0</b></div>
+<div class="stat"><small>EST. GROSS PROFIT</small><b id="sp">$0</b></div>
+</div>
+<div class="toolbar"><input id="q" placeholder="Search title, brand, SKU, size…" oninput="render()"><select id="status" onchange="render()"><option value="">All statuses</option><option>active</option><option>draft</option><option>sold</option></select></div>
+<div id="grid" class="grid"></div>
+</section>
+
+<section id="salesTab" class="hidden">
+<div class="stats">
+<div class="stat"><small>TOTAL SALES</small><b id="salesCount">0</b></div>
+<div class="stat"><small>REVENUE</small><b id="salesRevenue">$0</b></div>
+<div class="stat"><small>COST OF GOODS</small><b id="salesCost">$0</b></div>
+<div class="stat"><small>FEES + SHIPPING</small><b id="salesExpenses">$0</b></div>
+<div class="stat"><small>NET PROFIT</small><b id="salesProfit">$0</b></div>
+</div>
+<div class="tablewrap"><table class="sales"><thead><tr><th>Item</th><th>Platform</th><th>Sold</th><th>Cost</th><th>Ship</th><th>Fee</th><th>Profit</th><th>Date</th><th></th></tr></thead><tbody id="salesBody"></tbody></table></div>
+</section>
+
+
+<section id="queueTab" class="hidden">
+<h2 style="margin-top:0">Publish Queue</h2>
+<p class="sub">Your staging area. Queued items are ready for a marketplace connector the moment that connector goes live.</p>
+<div class="tablewrap">
+<table class="sales">
+<thead><tr><th>Item</th><th>SKU</th><th>Platform</th><th>Price</th><th>Status</th><th></th></tr></thead>
+<tbody id="queueBody"></tbody>
+</table>
+</div>
+</section>
+
+<section id="settingsTab" class="hidden">
+<h2 style="margin-top:0">Marketplace Connections</h2>
+<p class="sub">This panel is ready for the live connectors. No passwords belong in the app source code.</p>
+<div class="conn">
+<div class="conncard"><b><span class="dot pending"></span>eBay</b><p class="meta">Waiting on your developer approval. OAuth connector slot is ready. Queued eBay items will feed directly into it once credentials are approved.</p></div>
+<div class="conncard"><b><span class="dot pending"></span>Depop</b><p class="meta">Official Selling API requires partner approval.</p></div>
+<div class="conncard"><b><span class="dot"></span>Vinted</b><p class="meta">Local inventory mapping ready. Supported connection path still to be configured.</p></div>
+<div class="conncard"><b><span class="dot"></span>Mercari</b><p class="meta">Local inventory mapping ready. Supported connection path still to be configured.</p></div>
+<div class="conncard"><b><span class="dot"></span>Poshmark</b><p class="meta">Local inventory mapping ready. Supported connection path still to be configured.</p></div>
+</div>
+<div style="margin-top:20px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px">
+<b>When eBay approves you</b>
+<p class="meta">We add the OAuth credentials to a private environment file, connect your seller account, then wire Publish / Update / End Listing directly into these inventory cards.</p>
+</div>
+</section>
+</main>
+
+<dialog id="formDlg">
+<form id="f">
+<input type="hidden" name="id" id="editId">
+<div class="mh"><div><b style="font-size:18px" id="formTitle">New master listing</b><div class="sub">Big phone photos are compressed automatically.</div></div><button type="button" onclick="formDlg.close()">✕</button></div>
+<div class="mb"><div class="fg">
+<div class="full"><label>Add photos (up to 12 total)</label><input name="photos" type="file" accept="image/*" multiple><div class="note" id="photoNote">Saved into the app's own photo folder.</div><div id="existingPhotos" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px"></div></div>
+<div class="full"><label>Title</label><input name="title" required placeholder="Levi's 501 Men's Light Wash Jeans 34x32"></div>
+<div><label>Brand</label><input name="brand"></div><div><label>SKU</label><input name="sku" placeholder="CC-0001"></div>
+<div><label>Category</label><input name="category"></div><div><label>Size</label><input name="size"></div>
+<div><label>Condition</label><select name="condition"><option>Pre-owned - Excellent</option><option>Pre-owned - Good</option><option>Pre-owned - Fair</option><option>New with tags</option><option>New without tags</option></select></div>
+<div><label>Status</label><select name="status"><option>draft</option><option>active</option></select></div>
+<div><label>Cost paid</label><input name="cost" type="number" step=".01"></div><div><label>Default list price</label><input name="price" type="number" step=".01" required></div>
+<div><label>Storage bin / location</label><input name="storage_bin" placeholder="Bin A3"></div><div><label>Source</label><input name="source" placeholder="Goodwill, estate sale, etc."></div>
+<div><label>Purchase date</label><input name="purchase_date" type="date"></div><div></div>
+<div><label>Lowest offer you'd take</label><input name="min_offer" type="number" step=".01"></div><div><label>Estimated shipping cost</label><input name="shipping_cost" type="number" step=".01"></div>
+<div class="full"><label>Description</label><textarea name="description"></textarea></div>
+<div class="full"><label>Private notes</label><textarea name="notes" placeholder="Where sourced, flaws to remember, bin number, etc."></textarea></div>
+<div class="full"><label>Marketplaces</label><div id="plats" style="display:grid;gap:7px"></div></div>
+</div></div>
+<div class="mf"><button type="button" onclick="formDlg.close()">Cancel</button><button class="primary" id="saveBtn">Save listing</button></div>
+</form>
+</dialog>
+
+<dialog id="soldDlg">
+<div class="mh"><b>Mark sold everywhere</b><button onclick="soldDlg.close()">✕</button></div>
+<div class="mb" style="display:grid;gap:12px">
+<input id="soldId" type="hidden">
+<div><label>Where did it sell?</label><select id="soldPlatform"><option>eBay</option><option>Poshmark</option><option>Depop</option><option>Mercari</option><option>Vinted</option><option>Other</option></select></div>
+<div><label>Sold price</label><input id="soldPrice" type="number" step=".01"></div>
+<div><label>Actual shipping cost you paid</label><input id="soldShip" type="number" step=".01"></div>
+<div><label>Marketplace fee</label><input id="soldFee" type="number" step=".01"></div>
+<div class="note">Net profit = sold price − item cost − shipping − fee.</div>
+</div>
+<div class="mf"><button onclick="soldDlg.close()">Cancel</button><button class="good" onclick="confirmSold()">Sold • delist everywhere</button></div>
+</dialog>
+
+<script>
+const P=["Vinted","Depop","Mercari","Poshmark","eBay"];let items=[],sales=[],queueItems=[],meUser=null;
+const $=id=>document.getElementById(id), money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(+n||0);
+P.forEach(p=>$("plats").insertAdjacentHTML("beforeend",`<div class="plat"><label><input type="checkbox" data-p="${p}"> ${p}</label><input type="number" step=".01" placeholder="${p} price" data-price="${p}"></div>`));
+async function load(){
+ const me=await fetch("/api/me").then(r=>r.json());
+ if(!me.logged_in){location.href="/login";return}
+ meUser=me.user;
+ $("userLine").textContent=(meUser.business_name||meUser.display_name||meUser.email)+" • signed in";
+ items=await fetch("/api/listings").then(r=>r.json());
+ sales=items.filter(x=>x.status==="sold");
+ queueItems=await fetch("/api/queue").then(r=>r.json());
+ render();renderSales();renderQueue()
+}
+function render(){
+ let q=$("q").value.toLowerCase(), s=$("status").value;
+ let a=items.filter(x=>(!s||x.status===s)&&([x.title,x.brand,x.sku,x.size].join(" ").toLowerCase().includes(q)));
+ $("grid").innerHTML=a.length?a.map(x=>{
+  let ps=P.filter(p=>x.platforms?.[p]?.enabled).map(p=>`<span class="pill">${p}</span>`).join("");
+  let img=x.photos?.[0]?`<img src="/static/uploads/${meUser.id}/${x.photos[0]}">`:"No photo";
+  return `<div class="card"><div class="photo">${img}</div><div class="body"><div class="row"><div class="title">${esc(x.title)}</div><div class="price">${money(x.price)}</div></div><div class="meta">${esc(x.brand||"No brand")} • ${esc(x.size||"No size")} • ${x.status}</div><div class="meta">Cost ${money(x.cost)} • Floor ${money(x.min_offer)} • Ship ${money(x.shipping_cost)}</div>${x.status==="sold"?`<div class="profit">Net profit ${money(x.net_profit)}</div>`:""}<div class="pills">${ps||'<span class="meta">No marketplaces selected</span>'}</div><div class="actions"><button onclick="editListing('${x.id}')">Edit</button>${x.status!=="sold"?`<button class="primary" onclick="queueListing('${x.id}')">Queue selected</button><button class="good" onclick="markSold('${x.id}',${x.price})">Sold everywhere</button>`:`<button class="warn" onclick="reactivate('${x.id}')">Reactivate</button>`}<button onclick="dup('${x.id}')">Duplicate</button><button class="bad" onclick="del('${x.id}')">Delete</button></div></div></div>`
+ }).join(""):`<div class="empty">No listings here. 🛍️</div>`;
+ let active=items.filter(x=>x.status==="active"), sold=items.filter(x=>x.status==="sold");
+ $("sa").textContent=active.length;$("ss").textContent=sold.length;
+ $("sv").textContent=money(active.reduce((a,x)=>a+(+x.price||0),0));
+ $("sc").textContent=money(active.reduce((a,x)=>a+(+x.cost||0),0));
+ $("sp").textContent=money(active.reduce((a,x)=>a+(+x.price||0)-(+x.cost||0)-(+x.shipping_cost||0),0));
+}
+function renderSales(){
+ $("salesCount").textContent=sales.length;
+ $("salesRevenue").textContent=money(sales.reduce((a,x)=>a+(+x.sold_price||0),0));
+ $("salesCost").textContent=money(sales.reduce((a,x)=>a+(+x.cost||0),0));
+ $("salesExpenses").textContent=money(sales.reduce((a,x)=>a+(+x.sold_shipping_cost||0)+(+x.sold_fee||0),0));
+ $("salesProfit").textContent=money(sales.reduce((a,x)=>a+(+x.net_profit||0),0));
+ $("salesBody").innerHTML=sales.length?sales.map(x=>`<tr><td>${esc(x.title)}</td><td>${esc(x.sold_platform||"")}</td><td>${money(x.sold_price)}</td><td>${money(x.cost)}</td><td>${money(x.sold_shipping_cost)}</td><td>${money(x.sold_fee)}</td><td class="profit">${money(x.net_profit)}</td><td>${(x.sold_at||"").slice(0,10)}</td><td><button onclick="editListing('${x.id}')">Open</button></td></tr>`).join(""):`<tr><td colspan="9" class="meta">No sold items yet.</td></tr>`;
+}
+function esc(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function showTab(name){
+ for(const n of ["inventory","sales","queue","settings"]) $(n+"Tab").classList.toggle("hidden",n!==name);
+ for(const n of ["Inv","Sales","Queue","Settings"]) $("tab"+n).classList.remove("active");
+ $("tab"+({inventory:"Inv",sales:"Sales",queue:"Queue",settings:"Settings"}[name])).classList.add("active");
+}
+function resetPlatforms(){P.forEach(p=>{document.querySelector(`[data-p="${p}"]`).checked=false;document.querySelector(`[data-price="${p}"]`).value=""})}
+function openForm(){
+ $("f").reset();$("editId").value="";$("formTitle").textContent="New master listing";$("existingPhotos").innerHTML="";resetPlatforms();formDlg.showModal()
+}
+async function editListing(id){
+ const x=await fetch(`/api/listings/${id}`).then(r=>r.json());
+ $("f").reset();$("editId").value=id;$("formTitle").textContent="Edit listing";
+ for(const k of ["title","brand","sku","category","size","condition","cost","price","min_offer","shipping_cost","status","description","notes","storage_bin","source","purchase_date"]){
+  if($("f").elements[k]) $("f").elements[k].value=x[k]??"";
+ }
+ P.forEach(p=>{document.querySelector(`[data-p="${p}"]`).checked=!!x.platforms?.[p]?.enabled;document.querySelector(`[data-price="${p}"]`).value=x.platforms?.[p]?.price??x.price??""});
+ const ph=await fetch(`/api/photos/${id}`).then(r=>r.json());
+ $("existingPhotos").innerHTML=ph.map(p=>`<div style="position:relative"><img src="/static/uploads/${meUser.id}/${p.filename}" style="width:74px;height:74px;object-fit:cover;border-radius:9px;border:1px solid var(--border)"><span class="note" style="display:block;text-align:center">saved</span></div>`).join("");
+ formDlg.showModal()
+}
+$("f").onsubmit=async e=>{
+ e.preventDefault();let fd=new FormData(e.target), base=+fd.get("price")||0, platforms={};
+ P.forEach(p=>platforms[p]={enabled:document.querySelector(`[data-p="${p}"]`).checked,price:+document.querySelector(`[data-price="${p}"]`).value||base});
+ fd.set("platforms",JSON.stringify(platforms));
+ let id=$("editId").value, url=id?`/api/listings/${id}`:"/api/listings", method=id?"PUT":"POST";
+ $("saveBtn").disabled=true;$("saveBtn").textContent="Saving…";
+ let r=await fetch(url,{method,body:fd});
+ $("saveBtn").disabled=false;$("saveBtn").textContent="Save listing";
+ if(!r.ok){alert("Save failed. Try again.");return}
+ formDlg.close();load()
+}
+function markSold(id,price){$("soldId").value=id;$("soldPrice").value=price||"";$("soldShip").value="";$("soldFee").value="";soldDlg.showModal()}
+async function confirmSold(){await fetch(`/api/listings/${$("soldId").value}/sold`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({platform:$("soldPlatform").value,sold_price:+$("soldPrice").value||0,sold_shipping_cost:+$("soldShip").value||0,sold_fee:+$("soldFee").value||0})});soldDlg.close();load()}
+async function reactivate(id){await fetch(`/api/listings/${id}/reactivate`,{method:"POST"});load()}
+async function dup(id){await fetch(`/api/listings/${id}/duplicate`,{method:"POST"});load()}
+async function del(id){if(confirm("Delete this master listing?")){await fetch(`/api/listings/${id}`,{method:"DELETE"});load()}}
+
+function renderQueue(){
+ const body=$("queueBody");
+ if(!body) return;
+ body.innerHTML=queueItems.length?queueItems.map(x=>`<tr>
+   <td>${esc(x.title)}</td>
+   <td>${esc(x.sku||"")}</td>
+   <td>${esc(x.platform)}</td>
+   <td>${money(x.price)}</td>
+   <td>${esc(x.remote_status||"not_connected")}</td>
+   <td>${x.remote_status==="queued"?'<span class="profit">Ready for connector</span>':''}</td>
+ </tr>`).join(""):`<tr><td colspan="6" class="meta">Nothing queued yet.</td></tr>`;
+}
+async function queueListing(id){
+ const x=items.find(i=>i.id===id); if(!x) return;
+ const selected=P.filter(p=>x.platforms?.[p]?.enabled);
+ if(!selected.length){alert("Turn on at least one marketplace for this listing first.");return}
+ const r=await fetch(`/api/listings/${id}/queue`,{
+   method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({platforms:selected})
+ });
+ if(r.ok){await load();showTab("queue")}
+}
+
+async function logout(){
+ await fetch("/api/logout",{method:"POST"});
+ location.href="/login";
+}
+load();
+</script>
+</body></html>

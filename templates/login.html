@@ -1,0 +1,65 @@
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chaos Closet Private Beta</title>
+<style>
+:root{--bg:#0c0c11;--card:#181820;--pink:#ff2e91;--soft:#ffa2d0;--muted:#a8a1ac;--border:#333340}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 15% 0,rgba(255,46,145,.2),transparent 30%),#0c0c11;color:#f8f5f9;font:14px Segoe UI,Arial,sans-serif}
+.wrap{width:min(920px,100%);display:grid;grid-template-columns:1fr 1fr;gap:18px}.hero,.card{background:#181820;border:1px solid var(--border);border-radius:22px;padding:24px}.hero{display:flex;flex-direction:column;justify-content:center}.logo{font-size:30px;font-weight:900}.logo span{color:var(--soft)}.tag{font-size:18px;line-height:1.4;margin:14px 0}.muted{color:var(--muted)}input{width:100%;background:#101016;color:white;border:1px solid var(--border);border-radius:11px;padding:11px;margin:6px 0 12px}.tabs{display:flex;gap:8px;margin-bottom:16px}.tabs button{flex:1}button{border:0;border-radius:11px;padding:11px 14px;color:white;background:#272733;font-weight:800;cursor:pointer}.primary{background:linear-gradient(135deg,var(--pink),#923bff)}label{font-size:12px;font-weight:800}.hidden{display:none}.error{color:#ff8fa1;margin-top:8px}.good{color:#65e0aa}.tiny{font-size:11px;color:var(--muted);margin-top:12px}
+@media(max-width:720px){.wrap{grid-template-columns:1fr}.hero{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hero">
+<div class="logo">Chaos Closet <span>Community Beta</span></div>
+<div class="tag">A reseller command center built for people turning extra stuff, thrift finds, and spare time into extra income.</div>
+<div class="muted">Each account gets its own private inventory, sales history, profit tracking, publish queue, and marketplace connection settings.</div>
+</div>
+<div class="card">
+<div class="tabs"><button id="loginTab" class="primary" onclick="mode('login')">Log in</button><button id="registerTab" onclick="mode('register')">Create account</button></div>
+
+<form id="loginForm">
+<label>Email</label><input id="loginEmail" type="email" required>
+<label>Password</label><input id="loginPassword" type="password" required>
+<button class="primary" style="width:100%">Log in</button>
+<div id="loginError" class="error"></div>
+</form>
+
+<form id="registerForm" class="hidden">
+<label>Your name</label><input id="regName" required>
+<label>Shop / business name</label><input id="regBusiness" placeholder="Optional">
+<label>Email</label><input id="regEmail" type="email" required>
+<label>Password</label><input id="regPassword" type="password" minlength="8" required>
+<label>Beta invite code</label><input id="regInvite" required placeholder="Ask Jess for your code">
+<button class="primary" style="width:100%">Create my account</button>
+<div id="regError" class="error"></div>
+<div class="tiny">Passwords are hashed before storage. Private beta registration requires an invite code.</div>
+</form>
+</div>
+</div>
+<script>
+function mode(m){
+ document.getElementById("loginForm").classList.toggle("hidden",m!=="login");
+ document.getElementById("registerForm").classList.toggle("hidden",m!=="register");
+ document.getElementById("loginTab").classList.toggle("primary",m==="login");
+ document.getElementById("registerTab").classList.toggle("primary",m==="register");
+}
+document.getElementById("loginForm").onsubmit=async e=>{
+ e.preventDefault();document.getElementById("loginError").textContent="";
+ const r=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:loginEmail.value,password:loginPassword.value})});
+ const d=await r.json();
+ if(!r.ok){loginError.textContent=d.error||"Login failed";return}
+ location.href="/";
+}
+document.getElementById("registerForm").onsubmit=async e=>{
+ e.preventDefault();document.getElementById("regError").textContent="";
+ const r=await fetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({display_name:regName.value,business_name:regBusiness.value,email:regEmail.value,password:regPassword.value,invite_code:regInvite.value})});
+ const d=await r.json();
+ if(!r.ok){regError.textContent=d.error||"Registration failed";return}
+ location.href="/";
+}
+</script>
+</body></html>

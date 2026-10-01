@@ -1,8 +1,8 @@
 
-from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, send_file, send_from_directory, redirect, url_for, session
 from pathlib import Path
 import sqlite3, json, uuid, csv, io, shutil, datetime, webbrowser, threading, time, secrets, os
-from PIL import Image
+from PIL import Image, ImageOps
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -134,7 +134,7 @@ def compress_save(file, user_id, listing_id, index):
     user_dir.mkdir(parents=True, exist_ok=True)
     name = f"{listing_id}_{index}_{uuid.uuid4().hex[:8]}.jpg"
     dest = user_dir / name
-    img = Image.open(file.stream)
+    img = ImageOps.exif_transpose(Image.open(file.stream))
     if img.mode != "RGB":
         img = img.convert("RGB")
     img.thumbnail((1600,1600))
@@ -172,6 +172,32 @@ def home():
     if not current_user_id():
         return redirect(url_for("login_page"))
     return render_template("index.html")
+
+
+@app.get("/uploads/<user_id>/<path:filename>")
+def serve_upload(user_id, filename):
+    uid = current_user_id()
+    if not uid:
+        return jsonify({"error": "login required"}), 401
+    if uid != user_id:
+        return jsonify({"error": "forbidden"}), 403
+    if Path(filename).name != filename or "\\" in filename:
+        return jsonify({"error": "not found"}), 404
+    conn = db()
+    owned = conn.execute(
+        "SELECT 1 FROM photos p JOIN listings l ON l.id=p.listing_id "
+        "WHERE p.filename=? AND p.user_id=? AND l.user_id=?",
+        (filename, uid, uid),
+    ).fetchone()
+    conn.close()
+    if not owned:
+        return jsonify({"error": "not found"}), 404
+    directory = UPLOADS / uid
+    if not (directory / filename).is_file() and (UPLOADS / filename).is_file():
+        directory = UPLOADS
+    response = send_from_directory(directory, filename)
+    response.headers["Cache-Control"] = "private, no-store"
+    return response
 
 @app.route("/login")
 def login_page():

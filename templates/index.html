@@ -127,7 +127,7 @@ dialog{width:min(970px,95vw);max-height:91vh;overflow:auto;background:#15151d;co
 <script>
 const P=["Vinted","Depop","Mercari","Poshmark","eBay"];let items=[],sales=[],queueItems=[],meUser=null;
 const $=id=>document.getElementById(id), money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(+n||0);
-P.forEach(p=>$("plats").insertAdjacentHTML("beforeend",`<div class="plat"><label><input type="checkbox" data-p="${p}"> ${p}</label><input type="number" step=".01" placeholder="${p} price" data-price="${p}"></div>`));
+P.forEach(p=>$("plats").insertAdjacentHTML("beforeend",`<div class="plat"><label><input type="checkbox" data-p="${p}" onchange="syncPlatformInputs()"> ${p}</label><input type="number" step=".01" placeholder="${p} price" data-price="${p}" disabled></div>`));
 async function load(){
  const me=await fetch("/api/me").then(r=>r.json());
  if(!me.logged_in){location.href="/login";return}
@@ -166,7 +166,13 @@ function showTab(name){
  for(const n of ["Inv","Sales","Queue","Settings"]) $("tab"+n).classList.remove("active");
  $("tab"+({inventory:"Inv",sales:"Sales",queue:"Queue",settings:"Settings"}[name])).classList.add("active");
 }
-function resetPlatforms(){P.forEach(p=>{document.querySelector(`[data-p="${p}"]`).checked=false;document.querySelector(`[data-price="${p}"]`).value=""})}
+function syncPlatformInputs(){
+ P.forEach(p=>{
+  const selected=document.querySelector(`[data-p="${p}"]`).checked;
+  document.querySelector(`[data-price="${p}"]`).disabled=!selected;
+ });
+}
+function resetPlatforms(){P.forEach(p=>{document.querySelector(`[data-p="${p}"]`).checked=false;document.querySelector(`[data-price="${p}"]`).value=""});syncPlatformInputs()}
 function openForm(){
  $("f").reset();$("editId").value="";$("formTitle").textContent="New master listing";$("existingPhotos").innerHTML="";resetPlatforms();formDlg.showModal()
 }
@@ -177,20 +183,30 @@ async function editListing(id){
   if($("f").elements[k]) $("f").elements[k].value=x[k]??"";
  }
  P.forEach(p=>{document.querySelector(`[data-p="${p}"]`).checked=!!x.platforms?.[p]?.enabled;document.querySelector(`[data-price="${p}"]`).value=x.platforms?.[p]?.price??x.price??""});
+ syncPlatformInputs();
  const ph=await fetch(`/api/photos/${id}`).then(r=>r.json());
  $("existingPhotos").innerHTML=ph.map(p=>`<div style="position:relative"><img src="/uploads/${encodeURIComponent(meUser.id)}/${encodeURIComponent(p.filename)}" style="width:74px;height:74px;object-fit:contain;border-radius:9px;border:1px solid var(--border)"><span class="note" style="display:block;text-align:center">saved</span></div>`).join("");
  formDlg.showModal()
 }
 $("f").onsubmit=async e=>{
  e.preventDefault();let fd=new FormData(e.target), base=+fd.get("price")||0, platforms={};
- P.forEach(p=>platforms[p]={enabled:document.querySelector(`[data-p="${p}"]`).checked,price:+document.querySelector(`[data-price="${p}"]`).value||base});
+ P.forEach(p=>platforms[p]={enabled:document.querySelector(`[data-p="${p}"]`).checked,price:document.querySelector(`[data-p="${p}"]`).checked?(+document.querySelector(`[data-price="${p}"]`).value||base):base});
  fd.set("platforms",JSON.stringify(platforms));
  let id=$("editId").value, url=id?`/api/listings/${id}`:"/api/listings", method=id?"PUT":"POST";
  $("saveBtn").disabled=true;$("saveBtn").textContent="Saving…";
- let r=await fetch(url,{method,body:fd});
- $("saveBtn").disabled=false;$("saveBtn").textContent="Save listing";
- if(!r.ok){alert("Save failed. Try again.");return}
- formDlg.close();load()
+ try{
+  const r=await fetch(url,{method,body:fd});
+  if(!r.ok){
+   const problem=await r.json().catch(()=>({}));
+   alert(problem.error||(r.status===401?"Please log in again before saving.":"Save failed ("+r.status+"). Your listing is still open; try again."));
+   return;
+  }
+  formDlg.close();await load();
+ }catch(error){
+  alert("Could not reach the app. Your listing is still open; check your connection and try again.");
+ }finally{
+  $("saveBtn").disabled=false;$("saveBtn").textContent="Save listing";
+ }
 }
 function markSold(id,price){$("soldId").value=id;$("soldPrice").value=price||"";$("soldShip").value="";$("soldFee").value="";soldDlg.showModal()}
 async function confirmSold(){await fetch(`/api/listings/${$("soldId").value}/sold`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({platform:$("soldPlatform").value,sold_price:+$("soldPrice").value||0,sold_shipping_cost:+$("soldShip").value||0,sold_fee:+$("soldFee").value||0})});soldDlg.close();load()}
